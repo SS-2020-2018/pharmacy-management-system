@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="600.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.projectpms2207068.AdminDashboardController">
+
+    <left>
+        <VBox alignment="TOP_CENTER" prefWidth="250.0" spacing="15.0" styleClass="admin-left-panel">
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="30.0" />
+            </padding>
+            <ImageView fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true">
+                <image>
+                    <Image url="@image/admin_icon.png" />
+                </image>
+            </ImageView>
+            <Label styleClass="admin-welcome-text" text="Welcome, Admin" />
+            <Region VBox.vgrow="ALWAYS" />
+            <Button fx:id="dashboardNavBtn" alignment="BASELINE_LEFT" graphicTextGap="10.0" maxWidth="1.7976931348623157E308" styleClass="admin-nav-button" text="Dashboard">
+                <graphic>
+                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                        <image>
+                            <Image url="@image/admin_icon.png" />
+                        </image>
+                    </ImageView>
+                </graphic>
+            </Button>
+            <Button fx:id="addMedicinesNavBtn" alignment="BASELINE_LEFT" graphicTextGap="10.0" maxWidth="1.7976931348623157E308" styleClass="admin-nav-button" text="Add Medicines">
+                <graphic>
+                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                        <image>
+                            <Image url="@image/admin_icon.png" />
+                        </image>
+                    </ImageView>
+                </graphic>
+            </Button>
+            <Button fx:id="purchaseNavBtn" alignment="BASELINE_LEFT" graphicTextGap="10.0" maxWidth="1.7976931348623157E308" styleClass="admin-nav-button" text="Purchase Medicines">
+                <graphic>
+                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                        <image>
+                            <Image url="@image/admin_icon.png" />
+                        </image>
+                    </ImageView>
+                </graphic>
+            </Button>
+            <Region VBox.vgrow="ALWAYS" />
+            <Button fx:id="signOutBtn" alignment="BASELINE_LEFT" graphicTextGap="10.0" maxWidth="1.7976931348623157E308" styleClass="admin-nav-button" text="Sign Out">
+
+            </Button>
+        </VBox>
+    </left>
+
+
+    <center>
+        <StackPane>
+
+            <AnchorPane fx:id="dashboardView" style="-fx-background-color: #ecf0f1;">
+                <VBox alignment="TOP_CENTER" spacing="20.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
+                    <Label styleClass="dashboard-title" text="Income Data Chart" />
+                    <HBox alignment="CENTER" spacing="30.0">
+                        <VBox alignment="CENTER" prefHeight="120.0" prefWidth="200.0" spacing="10.0" styleClass="summary-card">
+                            <children>
+                                <Label styleClass="summary-card-value" text="5" />
+                                <Label styleClass="summary-card-title" text="Available Medicines" />
+                            </children>
+                        </VBox>
+                        <VBox alignment="CENTER" prefHeight="120.0" prefWidth="200.0" spacing="10.0" styleClass="summary-card">
+                            <children>
+                                <Label styleClass="summary-card-value" text="\$1453.0" />
+                                <Label styleClass="summary-card-title" text="Total Income" />
+                            </children>
+                        </VBox>
+                        <VBox alignment="CENTER" prefHeight="120.0" prefWidth="200.0" spacing="10.0" styleClass="summary-card">
+                            <children>
+                                <Label styleClass="summary-card-value" text="15" />
+                                <Label styleClass="summary-card-title" text="Total Customers" />
+                            </children>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </AnchorPane>
+
+            <AnchorPane fx:id="addMedicinesView" style="-fx-background-color: #ecf0f1;" visible="false">
+                <VBox spacing="20.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
+
+
+                    <VBox spacing="15.0" styleClass="form-container">
+                        <padding>
+                            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                        </padding>
+
+                        <HBox alignment="CENTER_LEFT" spacing="20.0">
+
+                            <VBox spacing="12.0" HBox.hgrow="ALWAYS">
+
+                                <HBox spacing="15.0">
+                                    <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                                        <Label styleClass="form-label" text="Medicine ID:" />
+                                        <TextField fx:id="medicineIdField" promptText="1" styleClass="form-input" />
+                                    </VBox>
+                                    <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                                        <Label styleClass="form-label" text="Status:" />
+                                        <ComboBox fx:id="statusCombo" maxWidth="Infinity" promptText="Choose..." styleClass="form-input" />
+                                    </VBox>
+                                </HBox>
+
+
+                                <HBox spacing="15.0">
+                                    <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                                        <Label styleClass="form-label" text="Brand Name:" />
+                                        <TextField fx:id="brandNameField" promptText="Thumbnail" styleClass="form-input" />
+                                    </VBox>
+                                    <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                                        <Label styleClass="form-label" text="Price:" />
+                                        <TextField fx:id="priceField" promptText="10.0" styleClass="form-input" />
+                                    </VBox>
+                                </HBox>
+
+
+                                <HBox spacing="15.0">
+                                    <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                                        <Label styleClass="form-label" text="Product Name:" />
+                                        <TextField fx:id="productNameField" promptText="Thumbnail" styleClass="form-input" />
+                                    </VBox>
+                                    <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                                        <Label styleClass="form-label" text="Type:" />
+                                        <ComboBox fx:id="typeCombo" maxWidth="Infinity" promptText="Choose..." styleClass="form-input" />
+                                    </VBox>
+                                </HBox>
+                            </VBox>
+
+
+                            <VBox alignment="CENTER" spacing="10.0">
+                                <StackPane styleClass="image-placeholder">
+                                    <Label styleClass="image-placeholder-text" text="EXAMPLE&#10;IMAGE-3" textAlignment="CENTER" />
+                                </StackPane>
+                                <Button fx:id="importBtn" styleClass="import-button" text="Import" />
+                            </VBox>
+
+
+                            <VBox alignment="TOP_CENTER" spacing="15.0">
+                                <Button fx:id="addBtn" prefWidth="100.0" styleClass="action-button-add" text="Add" />
+                                <Button fx:id="updateBtn" prefWidth="100.0" styleClass="action-button-update" text="Update" />
+                                <Button fx:id="clearBtn" prefWidth="100.0" styleClass="action-button-clear" text="Clear" />
+                                <Button fx:id="deleteBtn" prefWidth="100.0" styleClass="action-button-delete" text="Delete" />
+                            </VBox>
+                        </HBox>
+                    </VBox>
+
+                    <VBox spacing="10.0" styleClass="table-container" VBox.vgrow="ALWAYS">
+                        <padding>
+                            <Insets bottom="20.0" left="20.0" right="20.0" top="10.0" />
+                        </padding>
+
+
+                        <TextField fx:id="searchField" prefWidth="300.0" promptText="🔍 Search" styleClass="search-field" />
+
+
+                        <TableView fx:id="medicineTable" styleClass="medicine-table" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="colMedicineId" prefWidth="80.0" text="Medicine ID" />
+                                <TableColumn fx:id="colBrandName" prefWidth="120.0" text="Brand Name" />
+                                <TableColumn fx:id="colProductName" prefWidth="140.0" text="Product Name" />
+                                <TableColumn fx:id="colType" prefWidth="100.0" text="Type" />
+                                <TableColumn fx:id="colPrice" prefWidth="80.0" text="Price ($)" />
+                                <TableColumn fx:id="colStatus" prefWidth="100.0" text="Status" />
+                                <TableColumn fx:id="colDate" prefWidth="100.0" text="Date" />
+                            </columns>
+                        </TableView>
+                    </VBox>
+
+                </VBox>
+            </AnchorPane>
+
+
+            <AnchorPane fx:id="purchaseMedicinesView" visible="false" />
+        </StackPane>
+    </center>
+</BorderPane>
