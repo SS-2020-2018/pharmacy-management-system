@@ -15,54 +15,45 @@ import java.io.IOException;
 
 public class LoginController {
 
-    // --- FXML Injections ---
-
-    // Panes
     @FXML private VBox adminPane;
     @FXML private VBox userPane;
     @FXML private VBox registerPane;
 
-    // Side Buttons
     @FXML private Button adminBtn;
     @FXML private Button userBtn;
 
-    // Admin Form
     @FXML private TextField adminUserField;
     @FXML private PasswordField adminPassField;
     @FXML private Button adminLoginBtn;
 
-    // User Form
     @FXML private TextField userIdField;
     @FXML private PasswordField userPassField;
     @FXML private Button userLoginBtn;
+
     @FXML private Hyperlink registerLink;
 
-    // Register Form
     @FXML private TextField regUserIdField;
     @FXML private PasswordField regPasswordField;
     @FXML private PasswordField regConfirmPasswordField;
     @FXML private Button registerBtn;
     @FXML private Hyperlink backToLoginLink;
 
-
     @FXML
     public void initialize() {
-        showAdminForm();
+        DatabaseHandler.initializeDB();
 
+        showAdminForm();
 
         adminBtn.setOnAction(e -> showAdminForm());
         userBtn.setOnAction(e -> showUserForm());
 
-
         adminLoginBtn.setOnAction(e -> handleAdminLogin());
         userLoginBtn.setOnAction(e -> handleUserLogin());
-
 
         registerLink.setOnAction(e -> showRegisterPane());
         backToLoginLink.setOnAction(e -> showUserForm());
         registerBtn.setOnAction(e -> handleRegistration());
     }
-
 
     private void showAdminForm() {
         adminPane.setVisible(true);
@@ -82,17 +73,15 @@ public class LoginController {
         registerPane.setVisible(true);
     }
 
-
     private void handleAdminLogin() {
         String username = adminUserField.getText();
         String password = adminPassField.getText();
 
-        // Hardcoded Admin Check
-        if ("admin".equals(username) && "admin123".equals(password)) {
-            System.out.println("Admin Login Successful!");
+
+        if ("123".equals(username) && "123".equals(password)) {
             loadScene("AdminDashboard.fxml", "Pharmacy Management System - Admin Dashboard");
         } else {
-            showAlert("Login Failed", "Invalid Admin Credentials.");
+            showAlert("Login Failed", "Invalid Admin Username or Password.");
         }
     }
 
@@ -100,11 +89,15 @@ public class LoginController {
         String userId = userIdField.getText();
         String password = userPassField.getText();
 
-        if (!userId.isEmpty() && !password.isEmpty()) {
-            System.out.println("User Login Successful!");
+        if (userId.isEmpty() || password.isEmpty()) {
+            showAlert("Login Failed", "Enter Username and Password.");
+            return;
+        }
+
+        if (DatabaseHandler.validateLogin(userId, password)) {
             loadScene("UserDashboard.fxml", "Pharmacy - Home");
         } else {
-            showAlert("Login Failed", "Please enter both User ID and Password.");
+            showAlert("Login Failed", "Invalid Username or Password.");
         }
     }
 
@@ -123,10 +116,13 @@ public class LoginController {
             return;
         }
 
-        showAlert("Success", "Registration Successful! You can now login.");
-        showUserForm();
+        if (DatabaseHandler.createUser(newId, newPass)) {
+            showAlert("Success", "Registration Successful! You can now login.");
+            showUserForm();
+        } else {
+            showAlert("Error", "Registration Failed. Username might already exist.");
+        }
     }
-
 
     private void loadScene(String fxmlFileName, String title) {
         try {
@@ -134,19 +130,14 @@ public class LoginController {
             Parent root = loader.load();
             Stage stage = (Stage) adminLoginBtn.getScene().getWindow();
             Scene scene = new Scene(root);
-            String css = getClass().getResource("pharmacy-style.css").toExternalForm();
-            scene.getStylesheets().add(css);
 
             stage.setScene(scene);
             stage.centerOnScreen();
             stage.setTitle(title);
             stage.show();
-        } catch (IOException e) {
+        } catch (IOException | NullPointerException e) {
             e.printStackTrace();
-            showAlert("Error", "Failed to load " + fxmlFileName);
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-            showAlert("Error", "CSS or FXML file not found.");
+            showAlert("Error", "Could not load: " + fxmlFileName);
         }
     }
 

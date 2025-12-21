@@ -1,71 +1,46 @@
 package org.example.projectpms2207068;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
 
 public class UserDashboardController {
 
-    @FXML
-    private Button homeBtn;
-    @FXML
-    private Button shopBtn;
-    @FXML
-    private Button wishlistBtn;
-    @FXML
-    private Button aboutBtn;
-    @FXML
-    private Button managementBtn;
-    @FXML
-    private Button contactBtn;
-    @FXML
-    private Button careerBtn;
-    @FXML
-    private Button accountBtn;
-
-    @FXML
-    private StackPane contentArea;
+    @FXML public Button logoutbtn;
+    @FXML private Button homeBtn;
+    @FXML private Button shopBtn;
+    @FXML private Button aboutBtn;
+    @FXML private Button accountBtn;
+    @FXML private StackPane contentArea;
 
     @FXML
     public void initialize() {
-        setActiveButton(homeBtn);
+        homeBtn.setOnAction(e -> System.out.println("Home clicked"));
+        shopBtn.setOnAction(e -> System.out.println("Shop clicked"));
+        aboutBtn.setOnAction(e -> System.out.println("About clicked"));
+        accountBtn.setOnAction(e -> System.out.println("Account clicked"));
 
-
-        homeBtn.setOnAction(e -> {
-            setActiveButton(homeBtn);
-            System.out.println("Home Clicked");
-
-        });
-
-        shopBtn.setOnAction(e -> {
-            setActiveButton(shopBtn);
-            System.out.println("Shop Clicked");
-        });
-
-        wishlistBtn.setOnAction(e -> {
-            setActiveButton(wishlistBtn);
-            System.out.println("Wishlist Clicked");
-        });
-
+        logoutbtn.setOnAction(e -> handleLogout());
     }
 
-    private void setActiveButton(Button activeButton) {
-        resetButtonStyle(homeBtn);
-        resetButtonStyle(shopBtn);
-        resetButtonStyle(wishlistBtn);
-        resetButtonStyle(aboutBtn);
-        resetButtonStyle(managementBtn);
-        resetButtonStyle(contactBtn);
-        resetButtonStyle(careerBtn);
-        resetButtonStyle(accountBtn);
-        activeButton.getStyleClass().remove("nav-button");
-        activeButton.getStyleClass().add("nav-button-active");
-    }
+    private void handleLogout() {
+        try {
+            Stage currentStage = (Stage) logoutbtn.getScene().getWindow();
+            currentStage.close();
 
-    private void resetButtonStyle(Button btn) {
-        btn.getStyleClass().remove("nav-button-active");
-        if (!btn.getStyleClass().contains("nav-button")) {
-            btn.getStyleClass().add("nav-button");
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            Stage loginStage = new Stage();
+            loginStage.setScene(scene);
+            loginStage.setTitle("Welcome to Pharmacy Management System");
+            loginStage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
