@@ -6,15 +6,12 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+
+import java.time.LocalDate;
 
 public class AdminDashboardController {
 
@@ -27,101 +24,214 @@ public class AdminDashboardController {
     @FXML private Button orderNavBtn;
     @FXML private Button signOutBtn;
 
+    // Form
     @FXML private TextField medicineIdField;
     @FXML private TextField brandNameField;
     @FXML private TextField productNameField;
     @FXML private TextField priceField;
+    @FXML private TextField quantityField;
     @FXML private ComboBox<String> statusCombo;
     @FXML private ComboBox<String> typeCombo;
 
     @FXML private Button addBtn;
     @FXML private Button clearBtn;
-    @FXML private Button deleteBtn;   // NEW
+    @FXML private Button deleteBtn;
 
-    @FXML private TableView<MedicineData> medicineTable;
-    @FXML private TableColumn<MedicineData, String> colMedicineId;
-    @FXML private TableColumn<MedicineData, String> colBrandName;
-    @FXML private TableColumn<MedicineData, String> colProductName;
-    @FXML private TableColumn<MedicineData, String> colType;
-    @FXML private TableColumn<MedicineData, Double> colPrice;
-    @FXML private TableColumn<MedicineData, String> colStatus;
-    @FXML private TableColumn<MedicineData, String> colDate;
+    // Medicine table
+    @FXML private TableView<DatabaseHandler.MedicineRow> medicineTable;
+    @FXML private TableColumn<DatabaseHandler.MedicineRow, String> colMedicineId;
+    @FXML private TableColumn<DatabaseHandler.MedicineRow, String> colBrandName;
+    @FXML private TableColumn<DatabaseHandler.MedicineRow, String> colProductName;
+    @FXML private TableColumn<DatabaseHandler.MedicineRow, String> colType;
+    @FXML private TableColumn<DatabaseHandler.MedicineRow, Double> colPrice;
+    @FXML private TableColumn<DatabaseHandler.MedicineRow, Integer> colQuantity;
+    @FXML private TableColumn<DatabaseHandler.MedicineRow, String> colStatus;
+    @FXML private TableColumn<DatabaseHandler.MedicineRow, String> colDate;
 
+    // Dashboard
     @FXML private Label availableMedicinesLabel;
     @FXML private Label totalIncomeLabel;
     @FXML private Label totalCustomersLabel;
 
-    private final ObservableList<MedicineData> medicineList = FXCollections.observableArrayList();
+    // Orders (Pending only)
+    @FXML private TableView<DatabaseHandler.OrderRow> orderTable;
+    @FXML private TableColumn<DatabaseHandler.OrderRow, Integer> colOrderId;
+    @FXML private TableColumn<DatabaseHandler.OrderRow, String> colOrderUser;
+    @FXML private TableColumn<DatabaseHandler.OrderRow, String> colOrderMedicineId;
+    @FXML private TableColumn<DatabaseHandler.OrderRow, String> colOrderProduct;
+    @FXML private TableColumn<DatabaseHandler.OrderRow, Integer> colOrderQty;
+    @FXML private TableColumn<DatabaseHandler.OrderRow, Double> colOrderUnitPrice;
+    @FXML private TableColumn<DatabaseHandler.OrderRow, Double> colOrderTotal;
+    @FXML private TableColumn<DatabaseHandler.OrderRow, String> colOrderDate;
+    @FXML private TableColumn<DatabaseHandler.OrderRow, String> colOrderStatus;
+
+    @FXML private Button refreshOrdersBtn;
+    @FXML private Button completeOrderBtn;
+
+    private final ObservableList<DatabaseHandler.MedicineRow> medicineList = FXCollections.observableArrayList();
+    private final ObservableList<DatabaseHandler.OrderRow> ordersList = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
+        DatabaseHandler.initializeDB();
+
         statusCombo.getItems().addAll("Available", "Unavailable");
         typeCombo.getItems().addAll("Antibiotic", "PainKiller", "Syrup", "Crim", "Drop");
 
+        // Medicines columns
         colMedicineId.setCellValueFactory(new PropertyValueFactory<>("medicineId"));
         colBrandName.setCellValueFactory(new PropertyValueFactory<>("brandName"));
         colProductName.setCellValueFactory(new PropertyValueFactory<>("productName"));
         colType.setCellValueFactory(new PropertyValueFactory<>("type"));
         colPrice.setCellValueFactory(new PropertyValueFactory<>("price"));
+        colQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         colDate.setCellValueFactory(new PropertyValueFactory<>("date"));
-
         medicineTable.setItems(medicineList);
-        medicineTable.getColumns().forEach(col -> col.setReorderable(false));
 
+        // Orders columns
+        colOrderId.setCellValueFactory(new PropertyValueFactory<>("id"));
+        colOrderUser.setCellValueFactory(new PropertyValueFactory<>("username"));
+        colOrderMedicineId.setCellValueFactory(new PropertyValueFactory<>("medicineId"));
+        colOrderProduct.setCellValueFactory(new PropertyValueFactory<>("productName"));
+        colOrderQty.setCellValueFactory(new PropertyValueFactory<>("qty"));
+        colOrderUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
+        colOrderTotal.setCellValueFactory(new PropertyValueFactory<>("totalPrice"));
+        colOrderDate.setCellValueFactory(new PropertyValueFactory<>("date"));
+        colOrderStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        orderTable.setItems(ordersList);
+
+        // Nav
         dashboardNavBtn.setOnAction(e -> showDashboardView());
         addMedicinesNavBtn.setOnAction(e -> showAddMedicinesView());
-        orderNavBtn.setOnAction(e -> showPurchaseView());
+        orderNavBtn.setOnAction(e -> showOrderView());
         signOutBtn.setOnAction(e -> handleSignOut());
 
+        // Medicine actions
         addBtn.setOnAction(e -> handleAddMedicine());
         clearBtn.setOnAction(e -> clearForm());
-        deleteBtn.setOnAction(e -> handleDeleteMedicine());   // NEW
+        deleteBtn.setOnAction(e -> handleDeleteMedicine());
 
+        // Order actions
+        refreshOrdersBtn.setOnAction(e -> loadOrders());
+        completeOrderBtn.setOnAction(e -> completeSelectedOrder());
+
+        refreshAll();
         showDashboardView();
-        updateSummaryCards();
+    }
+
+    private void refreshAll() {
+        loadMedicines();
+        loadOrders();
+        updateDashboardCards();
+    }
+
+    private void loadMedicines() {
+        medicineList.setAll(DatabaseHandler.getAllMedicinesList());
+    }
+
+    private void loadOrders() {
+        ordersList.setAll(DatabaseHandler.getPendingOrders());
+    }
+
+    private void updateDashboardCards() {
+        availableMedicinesLabel.setText(String.valueOf(DatabaseHandler.getAvailableMedicinesCount()));
+        totalIncomeLabel.setText(String.valueOf(DatabaseHandler.getTotalIncomeCompleted()));
+        totalCustomersLabel.setText(String.valueOf(DatabaseHandler.getUserCount()));
     }
 
     private void handleAddMedicine() {
-        String id = medicineIdField.getText();
-        String brand = brandNameField.getText();
-        String product = productNameField.getText();
-        String priceText = priceField.getText();
+        String id = medicineIdField.getText().trim();
+        String brand = brandNameField.getText().trim();
+        String product = productNameField.getText().trim();
+        String priceText = priceField.getText().trim();
+        String qtyText = quantityField.getText().trim();
         String status = statusCombo.getValue();
         String type = typeCombo.getValue();
 
-        if (id.isEmpty() || brand.isEmpty() || product.isEmpty()
-                || priceText.isEmpty() || status == null || type == null) {
-            System.out.println("Fill all fields.");
+        if (id.isEmpty() || brand.isEmpty() || product.isEmpty() || priceText.isEmpty() || qtyText.isEmpty()
+                || status == null || type == null) {
+            showInfo("Error", "Please fill all fields.");
             return;
         }
 
         double price;
+        int qty;
         try {
             price = Double.parseDouble(priceText);
-        } catch (NumberFormatException ex) {
-            System.out.println("Price must be a number.");
+            qty = Integer.parseInt(qtyText);
+        } catch (Exception ex) {
+            showInfo("Error", "Price must be number and Quantity must be integer.");
             return;
         }
 
-        String date = "2025-01-01";
+        if (price < 0 || qty < 0) {
+            showInfo("Error", "Price and Quantity cannot be negative.");
+            return;
+        }
 
-        MedicineData data = new MedicineData(id, brand, product, type, price, status, date);
-        medicineList.add(data);
+        boolean ok = DatabaseHandler.insertMedicine(
+                id, brand, product, type, price, qty, status, LocalDate.now().toString()
+        );
+
+        if (!ok) {
+            showInfo("Error", "Insert failed (Medicine ID may already exist).");
+            return;
+        }
 
         clearForm();
-        updateSummaryCards();
+        refreshAll();
+        showInfo("Success", "Medicine added.");
     }
 
-    // NEW: delete selected medicine
     private void handleDeleteMedicine() {
-        MedicineData selected = medicineTable.getSelectionModel().getSelectedItem();
+        DatabaseHandler.MedicineRow selected = medicineTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            System.out.println("Select a row to delete.");
+            showInfo("Error", "Select a medicine row to delete.");
             return;
         }
-        medicineList.remove(selected);
-        updateSummaryCards();
+
+        boolean ok = DatabaseHandler.deleteMedicineById(selected.getMedicineId());
+        if (!ok) {
+            showInfo("Error", "Delete failed.");
+            return;
+        }
+
+        refreshAll();
+        showInfo("Success", "Medicine deleted.");
+    }
+
+    private void completeSelectedOrder() {
+        DatabaseHandler.OrderRow selected = orderTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showInfo("Error", "Select an order first.");
+            return;
+        }
+
+        // check stock again at completion time
+        int availableQty = DatabaseHandler.getMedicineQuantity(selected.getMedicineId());
+        if (availableQty < selected.getQty()) {
+            showInfo("Stock Problem",
+                    "Cannot complete. Available stock is " + availableQty + ", but order qty is " + selected.getQty());
+            return;
+        }
+
+        // reduce stock
+        boolean reduced = DatabaseHandler.reduceMedicineQuantity(selected.getMedicineId(), selected.getQty());
+        if (!reduced) {
+            showInfo("Error", "Failed to reduce medicine quantity.");
+            return;
+        }
+
+        // mark order completed
+        boolean ok = DatabaseHandler.updateOrderStatus(selected.getId(), "Completed");
+        if (!ok) {
+            showInfo("Error", "Failed to complete order.");
+            return;
+        }
+
+        refreshAll();
+        showInfo("Success", "Order completed. Medicine stock updated.");
     }
 
     private void clearForm() {
@@ -129,36 +239,30 @@ public class AdminDashboardController {
         brandNameField.clear();
         productNameField.clear();
         priceField.clear();
+        quantityField.clear();
         statusCombo.getSelectionModel().clearSelection();
         typeCombo.getSelectionModel().clearSelection();
-    }
-
-    private void updateSummaryCards() {
-        int available = (int) medicineList.stream()
-                .filter(m -> "Available".equalsIgnoreCase(m.getStatus()))
-                .count();
-
-        availableMedicinesLabel.setText(String.valueOf(available));
-        totalIncomeLabel.setText("0");
-        totalCustomersLabel.setText("0");
     }
 
     private void showDashboardView() {
         dashboardView.setVisible(true);
         addMedicinesView.setVisible(false);
         orderMedicinesView.setVisible(false);
+        updateDashboardCards();
     }
 
     private void showAddMedicinesView() {
         dashboardView.setVisible(false);
         addMedicinesView.setVisible(true);
         orderMedicinesView.setVisible(false);
+        loadMedicines();
     }
 
-    private void showPurchaseView() {
+    private void showOrderView() {
         dashboardView.setVisible(false);
         addMedicinesView.setVisible(false);
         orderMedicinesView.setVisible(true);
+        loadOrders();
     }
 
     private void handleSignOut() {
@@ -168,9 +272,9 @@ public class AdminDashboardController {
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("login.fxml"));
             Parent root = loader.load();
-            Scene scene = new Scene(root);
+
             Stage loginStage = new Stage();
-            loginStage.setScene(scene);
+            loginStage.setScene(new Scene(root));
             loginStage.setTitle("Welcome to Pharmacy Management System");
             loginStage.show();
         } catch (Exception e) {
@@ -178,32 +282,11 @@ public class AdminDashboardController {
         }
     }
 
-    public static class MedicineData {
-        private String medicineId;
-        private String brandName;
-        private String productName;
-        private String type;
-        private Double price;
-        private String status;
-        private String date;
-
-        public MedicineData(String medicineId, String brandName, String productName,
-                            String type, Double price, String status, String date) {
-            this.medicineId = medicineId;
-            this.brandName = brandName;
-            this.productName = productName;
-            this.type = type;
-            this.price = price;
-            this.status = status;
-            this.date = date;
-        }
-
-        public String getMedicineId() { return medicineId; }
-        public String getBrandName() { return brandName; }
-        public String getProductName() { return productName; }
-        public String getType() { return type; }
-        public Double getPrice() { return price; }
-        public String getStatus() { return status; }
-        public String getDate() { return date; }
+    private void showInfo(String title, String msg) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
+        a.setTitle(title);
+        a.setHeaderText(null);
+        a.setContentText(msg);
+        a.showAndWait();
     }
 }

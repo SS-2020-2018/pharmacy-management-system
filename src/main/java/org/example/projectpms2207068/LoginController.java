@@ -4,14 +4,9 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Hyperlink;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import java.io.IOException;
 
 public class LoginController {
 
@@ -42,7 +37,7 @@ public class LoginController {
     public void initialize() {
         DatabaseHandler.initializeDB();
 
-        showAdminForm();
+        showUserForm();
 
         adminBtn.setOnAction(e -> showAdminForm());
         userBtn.setOnAction(e -> showUserForm());
@@ -74,39 +69,65 @@ public class LoginController {
     }
 
     private void handleAdminLogin() {
-        String username = adminUserField.getText();
-        String password = adminPassField.getText();
-
+        String username = adminUserField.getText().trim();
+        String password = adminPassField.getText().trim();
 
         if ("123".equals(username) && "123".equals(password)) {
-            loadScene("AdminDashboard.fxml", "Pharmacy Management System - Admin Dashboard");
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("AdminDashboard.fxml"));
+                Parent root = loader.load();
+
+                Stage stage = (Stage) adminLoginBtn.getScene().getWindow();
+                stage.setScene(new Scene(root));
+                stage.setTitle("Admin Dashboard");
+                stage.centerOnScreen();
+                stage.show();
+            } catch (Exception e) {
+                showAlert("Error", "Could not load AdminDashboard.fxml");
+            }
         } else {
             showAlert("Login Failed", "Invalid Admin Username or Password.");
         }
     }
 
     private void handleUserLogin() {
-        String userId = userIdField.getText();
-        String password = userPassField.getText();
+        String userId = userIdField.getText().trim();
+        String password = userPassField.getText().trim();
 
         if (userId.isEmpty() || password.isEmpty()) {
             showAlert("Login Failed", "Enter Username and Password.");
             return;
         }
 
-        if (DatabaseHandler.validateLogin(userId, password)) {
-            loadScene("UserDashboard.fxml", "Pharmacy - Home");
-        } else {
+        if (!DatabaseHandler.validateLogin(userId, password)) {
             showAlert("Login Failed", "Invalid Username or Password.");
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("UserDashboard.fxml"));
+            Parent root = loader.load();
+
+            UserDashboardController controller = loader.getController();
+            controller.setUsername(userId);
+
+            Stage stage = (Stage) userLoginBtn.getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.setTitle("User Dashboard");
+            stage.centerOnScreen();
+            stage.show();
+
+        } catch (Exception e) {
+            showAlert("Error", "Could not load UserDashboard.fxml");
         }
     }
 
     private void handleRegistration() {
-        String newId = regUserIdField.getText();
-        String newPass = regPasswordField.getText();
-        String confirmPass = regConfirmPasswordField.getText();
+        String newId = regUserIdField.getText().trim();
+        String newPass = regPasswordField.getText().trim();
+        String confirmPass = regConfirmPasswordField.getText().trim();
 
-        if (newId.isEmpty() || newPass.isEmpty()) {
+        if (newId.isEmpty() || newPass.isEmpty() || confirmPass.isEmpty()) {
             showAlert("Error", "Please fill all registration fields.");
             return;
         }
@@ -116,28 +137,15 @@ public class LoginController {
             return;
         }
 
-        if (DatabaseHandler.createUser(newId, newPass)) {
+        boolean created = DatabaseHandler.createUser(newId, newPass);
+        if (created) {
             showAlert("Success", "Registration Successful! You can now login.");
+            regUserIdField.clear();
+            regPasswordField.clear();
+            regConfirmPasswordField.clear();
             showUserForm();
         } else {
             showAlert("Error", "Registration Failed. Username might already exist.");
-        }
-    }
-
-    private void loadScene(String fxmlFileName, String title) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFileName));
-            Parent root = loader.load();
-            Stage stage = (Stage) adminLoginBtn.getScene().getWindow();
-            Scene scene = new Scene(root);
-
-            stage.setScene(scene);
-            stage.centerOnScreen();
-            stage.setTitle(title);
-            stage.show();
-        } catch (IOException | NullPointerException e) {
-            e.printStackTrace();
-            showAlert("Error", "Could not load: " + fxmlFileName);
         }
     }
 
